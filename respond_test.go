@@ -85,6 +85,8 @@ func TestWith(t *testing.T) {
 }
 
 func TestWithJSON(t *testing.T) {
+	const jsonContentType = "application/json; utf-8"
+
 	type dummy struct {
 		F1 string `json:"f_1"`
 		F2 int    `json:"f_2"`
@@ -186,6 +188,12 @@ func TestWithJSON(t *testing.T) {
 			}
 			if !bytes.Equal(rec.Body.Bytes(), tt.wantBody) {
 				t.Fatalf("body = %#v, wantBody = %#v", rec.Body.Bytes(), tt.wantBody)
+			}
+			if tt.wantBody != nil {
+				contentType := rec.Header().Get("Content-Type")
+				if contentType != jsonContentType {
+					t.Fatalf("header Content-Type = %#v, want header Content-Type = %#v", contentType, jsonContentType)
+				}
 			}
 		})
 	}
