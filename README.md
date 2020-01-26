@@ -1,5 +1,7 @@
 # respond
 
+![Go](https://github.com/hemantjadon/respond/workflows/Go/badge.svg?branch=master)
+
 Package responds provides low touch, minimal API for sending HTTP API responses
 in go.
 
