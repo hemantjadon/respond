@@ -66,8 +66,11 @@ func TestWith(t *testing.T) {
 			wantErr: true,
 		},
 	}
+	t.Parallel()
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			if err := respond.With(tt.args.w, tt.args.status, tt.args.data); (err != nil) != tt.wantErr {
 				t.Fatalf("With() error = %v, wantErr %v", err, tt.wantErr)
 			} else if err != nil && tt.wantErr {
@@ -175,8 +178,12 @@ func TestWithJSON(t *testing.T) {
 			wantErr: true,
 		},
 	}
+	t.Parallel()
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			if err := respond.WithJSON(tt.args.w, tt.args.status, tt.args.data); (err != nil) != tt.wantErr {
 				t.Fatalf("With() error = %v, wantErr %v", err, tt.wantErr)
 			} else if err != nil && tt.wantErr {
