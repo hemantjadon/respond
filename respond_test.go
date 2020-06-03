@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"testing"
 
 	"github.com/hemantjadon/respond"
@@ -17,6 +18,7 @@ func TestWith(t *testing.T) {
 		status int
 		data   []byte
 	}
+
 	tests := []struct {
 		name       string
 		recorder   *httptest.ResponseRecorder
@@ -68,20 +70,27 @@ func TestWith(t *testing.T) {
 	}
 	t.Parallel()
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
-			if err := respond.With(tt.args.w, tt.args.status, tt.args.data); (err != nil) != tt.wantErr {
-				t.Fatalf("With() error = %v, wantErr %v", err, tt.wantErr)
-			} else if err != nil && tt.wantErr {
+			if err := respond.With(test.args.w, test.args.status, test.args.data); (err != nil) != test.wantErr {
+				t.Fatalf("With() error = %v, wantErr %v", err, test.wantErr)
+			} else if err != nil && test.wantErr {
 				return
 			}
-			rec := tt.args.w.(*httptest.ResponseRecorder)
-			if rec.Code != tt.wantStatus {
-				t.Fatalf("code = %#v, wantCode = %#v", rec.Code, tt.wantStatus)
+			rec := test.args.w.(*httptest.ResponseRecorder)
+			if rec.Code != test.wantStatus {
+				t.Errorf("code = %#v, wantCode = %#v", rec.Code, test.wantStatus)
 			}
-			if !bytes.Equal(rec.Body.Bytes(), tt.wantBody) {
-				t.Fatalf("body = %#v, wantBody = %#v", rec.Body.Bytes(), tt.wantBody)
+			if !bytes.Equal(rec.Body.Bytes(), test.wantBody) {
+				t.Errorf("body = %#v, wantBody = %#v", rec.Body.Bytes(), test.wantBody)
+			}
+			if test.wantBody != nil {
+				clen := rec.Header().Get("Content-Length")
+				if clen != strconv.Itoa(len(test.args.data)) {
+					t.Errorf("header Content-Length = %#v, want header Content-Length = %#v", clen, strconv.Itoa(len(test.args.data)))
+				}
 			}
 		})
 	}
@@ -100,6 +109,7 @@ func TestWithJSON(t *testing.T) {
 		status int
 		data   interface{}
 	}
+
 	tests := []struct {
 		name       string
 		recorder   *httptest.ResponseRecorder
@@ -180,26 +190,27 @@ func TestWithJSON(t *testing.T) {
 	}
 	t.Parallel()
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 
-			if err := respond.WithJSON(tt.args.w, tt.args.status, tt.args.data); (err != nil) != tt.wantErr {
-				t.Fatalf("With() error = %v, wantErr %v", err, tt.wantErr)
-			} else if err != nil && tt.wantErr {
+			if err := respond.WithJSON(test.args.w, test.args.status, test.args.data); (err != nil) != test.wantErr {
+				t.Fatalf("With() error = %v, wantErr %v", err, test.wantErr)
+			} else if err != nil && test.wantErr {
 				return
 			}
-			rec := tt.args.w.(*httptest.ResponseRecorder)
-			if rec.Code != tt.wantStatus {
-				t.Fatalf("code = %#v, wantCode = %#v", rec.Code, tt.wantStatus)
+			rec := test.args.w.(*httptest.ResponseRecorder)
+			if rec.Code != test.wantStatus {
+				t.Errorf("code = %#v, wantCode = %#v", rec.Code, test.wantStatus)
 			}
-			if !bytes.Equal(rec.Body.Bytes(), tt.wantBody) {
-				t.Fatalf("body = %#v, wantBody = %#v", rec.Body.Bytes(), tt.wantBody)
+			if !bytes.Equal(rec.Body.Bytes(), test.wantBody) {
+				t.Errorf("body = %#v, wantBody = %#v", rec.Body.Bytes(), test.wantBody)
 			}
-			if tt.wantBody != nil {
+			if test.wantBody != nil {
 				contentType := rec.Header().Get("Content-Type")
 				if contentType != jsonContentType {
-					t.Fatalf("header Content-Type = %#v, want header Content-Type = %#v", contentType, jsonContentType)
+					t.Errorf("header Content-Type = %#v, want header Content-Type = %#v", contentType, jsonContentType)
 				}
 			}
 		})
@@ -214,6 +225,6 @@ func (w errResponseRecorder) Write([]byte) (int, error) {
 	return 0, fmt.Errorf("error")
 }
 
-func ignoreSerErr(data []byte, err error) []byte {
+func ignoreSerErr(data []byte, _ error) []byte {
 	return data
 }
